@@ -71,11 +71,11 @@ async function getHomePage(req, res) {
           res.json({usersLists:usersLists, imports:imports});
         });
       } else {
-        res.json({});
+        res.json({usersLists:{}, imports:{}});
       }
     });
   } else {
-    res.json({});
+    res.json({usersLists:{}, imports:{}});
   }
 }
 
