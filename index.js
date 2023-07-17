@@ -23,7 +23,7 @@ app.use(
     extended: true,
   })
 );
-app.set('view engine', 'html')
+app.set("view engine", "html");
 app.use(bodyParser.json());
 app.options("*", cors());
 app.use((req, res, next) => {
@@ -39,12 +39,12 @@ app.use((req, res, next) => {
 app.get("/", sendFile);
 // app.get("/index.html", sendFile);
 app.get("/accountPage", sendFile);
-app.get('/itemListPage', sendFile)
+app.get("/itemListPage", sendFile);
 
 function sendFile(req, res, next) {
   console.log("file");
-  res.setHeader('Content-type', 'text/html')
-  res.sendFile(path.resolve(__dirname, "client", "index.html"));
+  res.setHeader("Content-type", "text/html");
+  res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
   // next()
 }
 
@@ -62,20 +62,27 @@ async function getHomePage(req, res) {
           data.lists.forEach((key) => {
             usersLists.push([key, lists.value[key]]);
           });
-          let imports = []
-          Object.keys(lists.value).forEach(key => {
-            if(!data.lists.includes(key)){
-              imports.push([key, lists.value[key]])
+
+          let imports = [];
+          Object.keys(lists.value).forEach((key) => {
+            if (!data.lists.includes(key)) {
+              imports.push([key, lists.value[key]]);
             }
-          })
-          res.json({usersLists:usersLists, imports:imports});
+          });
+          console.log(data);
+
+          res.json({
+            usersLists: usersLists,
+            imports: imports,
+            requests: data.requests,
+          });
         });
       } else {
-        res.json({usersLists:{}, imports:{}});
+        res.json({ usersLists: {}, imports: {} });
       }
     });
   } else {
-    res.json({usersLists:{}, imports:{}});
+    res.json({ usersLists: {}, imports: {} });
   }
 }
 
@@ -87,23 +94,23 @@ app.post("/homePage", async (req, res) => {
   await base.findOne({ _id: "LISTS" }).then(async (data) => {
     // > generate a new list code
     let newCode;
-    if(data.value){
+    if (data.value) {
       let codes = Object.keys(data.value);
       newCode = codes[0];
       while (codes.includes(newCode)) {
         newCode = genCode(7);
         console.log(newCode, counter);
-  
+
         // escape in case it makes an infinite loop
         if (counter > 5) {
           res.json({ fail: "code" });
           break;
         }
-  
+
         counter += 1;
       }
     } else {
-      newCode = genCode(7)
+      newCode = genCode(7);
     }
 
     // > insert new list to overall list
@@ -129,7 +136,7 @@ app.post("/homePage", async (req, res) => {
       })
       .catch((error) => {
         console.error("Update failed", error);
-        return res.sendStatus(500)
+        return res.sendStatus(500);
       });
 
     // > update users lists
@@ -142,13 +149,12 @@ app.post("/homePage", async (req, res) => {
       .updateOne({ username: req.query.user }, update)
       .then(() => {
         console.log("Update Successful");
-        getHomePage(req, res)
+        getHomePage(req, res);
       })
       .catch((error) => {
         console.error("Update failed", error);
       });
   });
-
 });
 
 app.delete("/homePage", async (req, res) => {
@@ -157,7 +163,14 @@ app.delete("/homePage", async (req, res) => {
     res.send(404);
     return;
   }
-  console.log("Delete", req.query.list, "from user", req.query.user, 'owner', req.query.owner);
+  console.log(
+    "Delete",
+    req.query.list,
+    "from user",
+    req.query.user,
+    "owner",
+    req.query.owner
+  );
 
   let update = {
     $pull: {
@@ -165,16 +178,15 @@ app.delete("/homePage", async (req, res) => {
     },
   };
 
-  if(req.query.user === req.query.owner){
+  if (req.query.user === req.query.owner) {
     let _delete = {
-      $unset:{}
-    }
-    _delete['$unset'][`value.${req.query.list}`] = ''
-    await base.updateOne({_id:'LISTS'}, _delete).then(data => {
-      console.log('success')
-    })
+      $unset: {},
+    };
+    _delete["$unset"][`value.${req.query.list}`] = "";
+    await base.updateOne({ _id: "LISTS" }, _delete).then((data) => {
+      console.log("success");
+    });
   }
-  
 
   // return getHomePage(req, res)
   await base.updateOne({ username: req.query.user }, update).then((data) => {
@@ -183,45 +195,43 @@ app.delete("/homePage", async (req, res) => {
   });
 });
 
-app.post('/addItem', async (req, res) => {
+app.post("/addItem", async (req, res) => {
   // console.log(req.body)
   // console.log(req.query)
 
   let update = {
-    $push:{}
-  }
-  update['$push'][`value.${req.query.list}.data`] = req.body
+    $push: {},
+  };
+  update["$push"][`value.${req.query.list}.data`] = req.body;
   // console.log(update)
-  await base.updateOne({_id:'LISTS'}, update).then(data => {
-    console.log(data)
-    itemList(req, res)
+  await base.updateOne({ _id: "LISTS" }, update).then((data) => {
+    console.log(data);
+    itemList(req, res);
     // res.sendStatus(200)
-  })
-})
+  });
+});
 
-app.delete('/addItem', async (req, res) => {
-  console.log(req.body)
-  console.log(req.query)
-  
+app.delete("/addItem", async (req, res) => {
+  console.log(req.body);
+  console.log(req.query);
+
   let update = {
     $pull: {},
   };
   update["$pull"][`value.${req.query.list}.data`] = {
-    itemName: req.query.item
+    itemName: req.query.item,
   };
 
   await base
-  .updateOne({ _id: "LISTS" }, update)
-  .then(() => {
-    console.log("Update Successful");
-    itemList(req, res)
-  })
-  .catch((error) => {
-    console.error("Update failed", error);
-  });
-
-})
-
+    .updateOne({ _id: "LISTS" }, update)
+    .then(() => {
+      console.log("Update Successful");
+      itemList(req, res);
+    })
+    .catch((error) => {
+      console.error("Update failed", error);
+    });
+});
 
 app.get("/itemList", itemList);
 
@@ -235,7 +245,7 @@ async function itemList(req, res) {
 app.get("/accounts", (req, res) => {
   // console.log(req.cookies.user);
   // res.json(accountData);
-  res.sendStatus(200)
+  res.sendStatus(200);
 });
 
 app.post("/accounts", async (req, res) => {
@@ -295,33 +305,94 @@ async function loginToAccount(req, res) {
     });
 }
 
-app.post('/importList', async (req, res) => {
-  console.log(req.body)
-  console.log(req.query)
+app.post("/importList", async (req, res) => {
+  console.log(req.body);
+  console.log(req.query);
 
   // update users pending lists
   let update = {
-    $set:{
-      pendingLists:{}
-    }
+    $set: {},
+  };
+  update["$set"][`pendingLists.${req.body.listId}`] = [
+    req.body.owner,
+    req.body.listName,
+  ];
+  console.log(update);
+  await base
+    .updateOne({ username: req.query.user }, update)
+    .then(async (data) => {
+      update = {
+        $set: {},
+      };
+      update["$set"][`requests.${req.body.listId}`] = [
+        req.query.user,
+        req.body.listName,
+      ];
+      console.log(update);
+      await base
+        .updateOne({ username: req.body.owner }, update)
+        .then((data) => {
+          res.sendStatus(200);
+        });
+    });
+});
+
+app.put("/requestList", (req, res) => {
+  console.log(req.body);
+  console.log(req.query);
+  if (req.query.type === "block") {
+    blockRequest(req, res);
+  } else if (req.query.type === "accept") {
+    acceptRequest(req, res);
+  } else {
+    res.sendStatus(500);
   }
-  update['$set']['pendingLists'][req.body.listId] = req.body.owner
-  console.log(update)
-  await base.updateOne({username:req.query.user}, update).then(async data => {
+});
+
+async function blockRequest(req, res) {
+  let update = {
+    $unset: {},
+  };
+  update["$unset"][`requests.${req.body.code}`] = req.body.list;
+  console.log("up1", update);
+  await base.updateOne({ username: req.query.user}, update).then(async () => {
     update = {
-      $set:{
-        requests:{}
-      }
-    }
-    update['$set']['requests'][req.body.listId] = req.query.user
-    console.log(update)
-    await base.updateOne({username:req.body.owner}, update).then(data => {
-      res.sendStatus(200)
-    })
-  })
+      $unset: {},
+    };
+    update["$unset"][`pendingLists.${req.body.code}`] = [
+      req.query.user,
+      req.body.list[1],
+    ];
+    console.log("up2", update);
+    console.log(data)
+    await base.updateOne({ username: req.body.list[0] }, update).then(() => {
+      getHomePage(req, res)
+    });
+  });
+}
 
-})
-
+async function acceptRequest(req, res) {
+  let update = {
+    $unset: {},
+  };
+  update["$unset"][`requests.${req.body.code}`] = req.body.list;
+  console.log("up1", update);
+  await base.updateOne({ username: req.query.user}, update).then(async () => {
+    update = {
+      $unset: {},
+      $push:{}
+    };
+    update["$unset"][`pendingLists.${req.body.code}`] = [
+      req.query.user,
+      req.body.list[1],
+    ];
+    update["$push"][`lists`] = req.body.code;
+    console.log("up2", update);
+    await base.updateOne({ username: req.body.list[0] }, update).then(() => {
+      getHomePage(req, res)
+    });
+  });
+}
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
