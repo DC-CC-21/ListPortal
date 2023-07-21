@@ -112,6 +112,9 @@ app.post("/homePage", async (req, res) => {
     } else {
       newCode = genCode(7);
     }
+    if(!newCode){
+      genCode(7)
+    }
 
     // > insert new list to overall list
     // gather data from form
