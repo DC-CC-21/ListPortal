@@ -51,7 +51,7 @@ function sendFile(req, res, next) {
 app.get("/homePage", getHomePage);
 
 async function getHomePage(req, res) {
-  console.log(req.query);
+  // console.log(req.query);
   console.log("homePage");
 
   if (req.query.user) {
@@ -69,7 +69,7 @@ async function getHomePage(req, res) {
               imports.push([key, lists.value[key]]);
             }
           });
-          console.log(data);
+          // console.log(data);
 
           res.json({
             usersLists: usersLists,
@@ -99,7 +99,7 @@ app.post("/homePage", async (req, res) => {
       newCode = codes[0];
       while (codes.includes(newCode)) {
         newCode = genCode(7);
-        console.log(newCode, counter);
+        // console.log(newCode, counter);
 
         // escape in case it makes an infinite loop
         if (counter > 5) {
@@ -166,14 +166,14 @@ app.delete("/homePage", async (req, res) => {
     res.send(404);
     return;
   }
-  console.log(
-    "Delete",
-    req.query.list,
-    "from user",
-    req.query.user,
-    "owner",
-    req.query.owner
-  );
+  // console.log(
+  //   "Delete",
+  //   req.query.list,
+  //   "from user",
+  //   req.query.user,
+  //   "owner",
+  //   req.query.owner
+  // );
 
   let update = {
     $pull: {
@@ -215,8 +215,8 @@ app.post("/addItem", async (req, res) => {
 });
 
 app.delete("/addItem", async (req, res) => {
-  console.log(req.body);
-  console.log(req.query);
+  // console.log(req.body);
+  // console.log(req.query);
 
   let update = {
     $pull: {},
@@ -252,9 +252,9 @@ app.get("/accounts", (req, res) => {
 });
 
 app.post("/accounts", async (req, res) => {
-  console.log(req.body);
-  console.log(req.params);
-  console.log(req.query);
+  // console.log(req.body);
+  // console.log(req.params);
+  // console.log(req.query);
   if (req.query.type == "login") {
     loginToAccount(req, res);
   } else if (req.query.type == "create") {
@@ -265,7 +265,7 @@ app.post("/accounts", async (req, res) => {
 async function createAccount(req, res) {
   console.log("create");
   await base.findOne({ username: req.body.username }).then(async (data) => {
-    console.log(data);
+    // console.log(data);
     //check if username already exists
     if (data != null) {
       console.log("Username already exists");
@@ -282,7 +282,7 @@ async function createAccount(req, res) {
         requests: {},
       };
       await base.insertOne(data).then((data) => {
-        console.log(data);
+        // console.log(data);
         res.sendStatus(200);
       });
     }
@@ -295,7 +295,7 @@ async function loginToAccount(req, res) {
   await base
     .findOne({ username: req.body.username, pword: req.body.pword })
     .then((data) => {
-      console.log(data);
+      // console.log(data);
       if (data != null) {
         console.log("Data found");
         res.send(200);
@@ -331,7 +331,7 @@ app.post("/importList", async (req, res) => {
         req.query.user,
         req.body.listName,
       ];
-      console.log(update);
+      // console.log(update);
       await base
         .updateOne({ username: req.body.owner }, update)
         .then((data) => {
@@ -341,8 +341,8 @@ app.post("/importList", async (req, res) => {
 });
 
 app.put("/requestList", (req, res) => {
-  console.log(req.body);
-  console.log(req.query);
+  // console.log(req.body);
+  // console.log(req.query);
   if (req.query.type === "block") {
     blockRequest(req, res);
   } else if (req.query.type === "accept") {
@@ -357,7 +357,7 @@ async function blockRequest(req, res) {
     $unset: {},
   };
   update["$unset"][`requests.${req.body.code}`] = req.body.list;
-  console.log("up1", update);
+  // console.log("up1", update);
   await base.updateOne({ username: req.query.user}, update).then(async () => {
     update = {
       $unset: {},
@@ -366,8 +366,8 @@ async function blockRequest(req, res) {
       req.query.user,
       req.body.list[1],
     ];
-    console.log("up2", update);
-    console.log(data)
+    // console.log("up2", update);
+    // console.log(data)
     await base.updateOne({ username: req.body.list[0] }, update).then(() => {
       getHomePage(req, res)
     });
@@ -390,7 +390,7 @@ async function acceptRequest(req, res) {
       req.body.list[1],
     ];
     update["$push"][`lists`] = req.body.code;
-    console.log("up2", update);
+    // console.log("up2", update);
     await base.updateOne({ username: req.body.list[0] }, update).then(() => {
       getHomePage(req, res)
     });
