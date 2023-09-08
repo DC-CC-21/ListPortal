@@ -15,6 +15,7 @@ const cors = require("cors");
 const app = express();
 const path = require("path");
 
+
 // define what the app will use
 app.use(express.static("client/build"));
 app.use(cookieParser());
@@ -198,9 +199,10 @@ app.delete("/homePage", async (req, res) => {
   });
 });
 
+
 app.post("/addItem", async (req, res) => {
   // console.log(req.body)
-  // console.log(req.query)
+  console.log(req.query)
 
   let update = {
     $push: {},
@@ -215,8 +217,8 @@ app.post("/addItem", async (req, res) => {
 });
 
 app.delete("/addItem", async (req, res) => {
-  // console.log(req.body);
-  // console.log(req.query);
+  console.log(req.body);
+  console.log(req.query);
 
   let update = {
     $pull: {},
