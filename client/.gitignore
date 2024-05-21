@@ -9,8 +9,8 @@
 /coverage
 
 # production
-/src
-/public
+# /src
+# /public
 
 # misc
 .DS_Store
